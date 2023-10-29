@@ -29,6 +29,6 @@ This project consists of image processing techniques like image compression, col
 <img src="https://github.com/katyalmohit/image-processing-and-compression/blob/main/MATLAB-4.png" alt="Image containing the GUI of project"></img>
 
 # Collaborators
-* <a href="github.com/abhaygzb15">Abhay Pawar</a>
-* <a href="github.com/anhad-01">Anhad Mehrotra</a>
-* <a href="github.com/arjun618">Arjun Gupta</a>
+* <a href="https://github.com/abhaygzb15">Abhay Pawar</a>
+* <a href="https://github.com/anhad-01">Anhad Mehrotra</a>
+* <a href="https://github.com/arjun618">Arjun Gupta</a>
