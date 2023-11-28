@@ -1,0 +1,399 @@
+classdef ImageCompression < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                  matlab.ui.Figure
+        Panel_4                   matlab.ui.container.Panel
+        ColoredCompressionLabel   matlab.ui.control.Label
+        CompressionratioSlider_2  matlab.ui.control.Slider
+        CompressionSliderLabel    matlab.ui.control.Label
+        CompressionratioSlider    matlab.ui.control.Slider
+        Switch                    matlab.ui.control.ToggleSwitch
+        Panel_2                   matlab.ui.container.Panel
+        ColorInversionButton      matlab.ui.control.Button
+        MirrorImageButton         matlab.ui.control.Button
+        OperationsLabel           matlab.ui.control.Label
+        GrayscaleButton           matlab.ui.control.Button
+        BrowseButton              matlab.ui.control.Button
+        Panel                     matlab.ui.container.Panel
+        CompressedImageLabel      matlab.ui.control.Label
+        OperatedImageLabel        matlab.ui.control.Label
+        OriginalImageLabel        matlab.ui.control.Label
+        UIAxes                    matlab.ui.control.UIAxes
+        UIAxes2                   matlab.ui.control.UIAxes
+        UIAxes3                   matlab.ui.control.UIAxes
+        ImageCompressionLabel     matlab.ui.control.Label
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            
+        end
+
+        % Callback function
+        function CompressedImageButtonPushed(app, event)
+       
+        
+        end
+
+        % Button pushed function: GrayscaleButton
+        function GrayscaleButtonPushed(app, event)
+            global image1;
+            global y;
+            y=rgb2gray(image1);
+            imshow(y,'parent',app.UIAxes3);
+        end
+
+        % Button pushed function: BrowseButton
+        function BrowseButtonPushed(app, event)
+            global image1;
+            [filename pathname]= uigetfile({'*.jpg'},'Open file')
+            fullpathname = strcat(pathname, filename);
+            image1 = imread(fullpathname);
+            imshow(image1,'parent',app.UIAxes);
+        end
+
+        % Value changed function: CompressionratioSlider
+        function CompressionratioSliderValueChanged(app, event)
+            value = app.CompressionratioSlider.Value;
+            global y;
+            global D;
+            global compressedSizeKB;
+            I2 = im2double(y);
+            [u, s, v] = svd(I2);
+            % Apply compression ratio to singular values
+            s2 = s;
+            s2(value:end, :) = 0;
+            s2(:, value:end) = 0;
+            D = u * s2 * v';
+            
+            % Update the compressed image in UIAxes3
+            imshow(D, 'Parent', app.UIAxes2);
+        end
+
+        % Callback function
+        function SizeButtonPushed(app, event)
+          
+        end
+
+        % Callback function
+        function SizeButton_2Pushed(app, event)
+            
+        end
+
+        % Button pushed function: MirrorImageButton
+        function MirrorImageButtonPushed(app, event)
+            global image1;
+            % Flip the original image horizontally to create a mirror image
+            mirrorImage = flip(image1, 2);
+            %mirrorImage = image1(:, end:-1:1)
+            
+            % Display the mirror image in the UIAxes
+            imshow(mirrorImage, 'Parent', app.UIAxes3);
+        end
+
+        % Callback function
+        function SwitchValueChanged(app, event)
+          
+        end
+
+        % Callback function
+        function CropButtonPushed(app, event)
+          
+        end
+
+        % Callback function
+        function SizeEditFieldValueChanged(app, event)
+           
+        end
+
+        % Callback function
+        function SwitchValueChanged2(app, event)
+
+        end
+
+        % Value changed function: Switch
+        function SwitchValueChanged3(app, event)
+            value = app.Switch.Value;
+            if strcmp(value, 'Exit')
+                % Perform exit operations here
+                uialert(app.UIFigure, 'Exiting the program', 'Exit');
+                delete(app.UIFigure); % Close the app window
+            end
+        end
+
+        % Callback function
+        function CompressedColoredImageButtonPushed(app, event)
+
+        end
+
+        % Button pushed function: ColorInversionButton
+        function ColorInversionButtonPushed(app, event)
+            global image1;
+            global y;
+            %x = imread(y);
+            %[m,n]=size(x);
+            %z=255*ones(m,n);
+            %k = z-x;
+            complement = imcomplement(image1);
+            imshow(complement,'Parent',app.UIAxes3);
+
+        end
+
+        % Value changed function: CompressionratioSlider_2
+        function CompressionratioSlider_2ValueChanged(app, event)
+            value = app.CompressionratioSlider_2.Value;
+            global image1;
+           
+            % Perform SVD on each color channel separately
+            red_channel = double(image1(:,:,1));
+            green_channel = double(image1(:,:,2));
+            blue_channel = double(image1(:,:,3));
+            
+            [U_red, S_red, V_red] = svd(red_channel);
+            [U_green, S_green, V_green] = svd(green_channel);
+            [U_blue, S_blue, V_blue] = svd(blue_channel);
+            
+            % Reconstruct the image using a subset of singular values (e.g., keeping the first k singular values)
+             % Number of singular values to keep = value
+            k= value;
+            red_reconstructed = U_red(:,1:k) * S_red(1:k,1:k) * V_red(:,1:k)';
+            green_reconstructed = U_green(:,1:k) * S_green(1:k,1:k) * V_green(:,1:k)';
+            blue_reconstructed = U_blue(:,1:k) * S_blue(1:k,1:k) * V_blue(:,1:k)';
+            
+            % Concatenate the reconstructed color channels
+            reconstructed_image = uint8(cat(3, red_reconstructed, green_reconstructed, blue_reconstructed));
+            imshow(reconstructed_image, 'Parent', app.UIAxes3);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Color = [0.7216 1 0.8314];
+            app.UIFigure.Position = [100 100 1523 764];
+            app.UIFigure.Name = 'MATLAB App';
+            app.UIFigure.WindowStyle = 'alwaysontop';
+
+            % Create ImageCompressionLabel
+            app.ImageCompressionLabel = uilabel(app.UIFigure);
+            app.ImageCompressionLabel.BackgroundColor = [0.5529 0.949 0];
+            app.ImageCompressionLabel.HorizontalAlignment = 'center';
+            app.ImageCompressionLabel.FontSize = 35;
+            app.ImageCompressionLabel.FontWeight = 'bold';
+            app.ImageCompressionLabel.FontAngle = 'italic';
+            app.ImageCompressionLabel.Position = [378 698 831 45];
+            app.ImageCompressionLabel.Text = 'Image Compression ';
+
+            % Create Panel
+            app.Panel = uipanel(app.UIFigure);
+            app.Panel.BorderWidth = 6;
+            app.Panel.BackgroundColor = [0 0.949 0.6];
+            app.Panel.Position = [516 339 946 321];
+
+            % Create UIAxes3
+            app.UIAxes3 = uiaxes(app.Panel);
+            app.UIAxes3.FontName = 'Noto Serif CJK TC';
+            app.UIAxes3.XTick = [];
+            app.UIAxes3.YTick = [];
+            app.UIAxes3.FontSize = 14;
+            app.UIAxes3.Position = [307 14 242 214];
+
+            % Create UIAxes2
+            app.UIAxes2 = uiaxes(app.Panel);
+            app.UIAxes2.FontName = 'Noto Serif CJK TC';
+            app.UIAxes2.XTick = [];
+            app.UIAxes2.YTick = [];
+            app.UIAxes2.FontSize = 14;
+            app.UIAxes2.Position = [585 20 231 214];
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.Panel);
+            app.UIAxes.FontName = 'Noto Serif CJK TC';
+            app.UIAxes.FontWeight = 'bold';
+            app.UIAxes.XTick = [];
+            app.UIAxes.YTick = [];
+            app.UIAxes.YTickLabel = '';
+            app.UIAxes.FontSize = 14;
+            colormap(app.UIAxes, 'gray')
+            app.UIAxes.Position = [37 14 238 214];
+
+            % Create OriginalImageLabel
+            app.OriginalImageLabel = uilabel(app.Panel);
+            app.OriginalImageLabel.BackgroundColor = [0.949 0.4118 0.7098];
+            app.OriginalImageLabel.HorizontalAlignment = 'center';
+            app.OriginalImageLabel.FontSize = 18;
+            app.OriginalImageLabel.FontAngle = 'italic';
+            app.OriginalImageLabel.Position = [52 282 210 23];
+            app.OriginalImageLabel.Text = 'Original Image';
+
+            % Create OperatedImageLabel
+            app.OperatedImageLabel = uilabel(app.Panel);
+            app.OperatedImageLabel.BackgroundColor = [0.949 0.4118 0.7098];
+            app.OperatedImageLabel.HorizontalAlignment = 'center';
+            app.OperatedImageLabel.FontSize = 18;
+            app.OperatedImageLabel.FontAngle = 'italic';
+            app.OperatedImageLabel.Position = [338 281 210 23];
+            app.OperatedImageLabel.Text = 'Operated Image';
+
+            % Create CompressedImageLabel
+            app.CompressedImageLabel = uilabel(app.Panel);
+            app.CompressedImageLabel.BackgroundColor = [0.949 0.4118 0.7098];
+            app.CompressedImageLabel.HorizontalAlignment = 'center';
+            app.CompressedImageLabel.FontSize = 18;
+            app.CompressedImageLabel.FontAngle = 'italic';
+            app.CompressedImageLabel.Position = [655 283 210 23];
+            app.CompressedImageLabel.Text = 'Compressed Image';
+
+            % Create Panel_2
+            app.Panel_2 = uipanel(app.UIFigure);
+            app.Panel_2.BorderWidth = 6;
+            app.Panel_2.BackgroundColor = [0 0.949 0.6];
+            app.Panel_2.Position = [64 83 327 577];
+
+            % Create BrowseButton
+            app.BrowseButton = uibutton(app.Panel_2, 'push');
+            app.BrowseButton.ButtonPushedFcn = createCallbackFcn(app, @BrowseButtonPushed, true);
+            app.BrowseButton.BackgroundColor = [0 0 1];
+            app.BrowseButton.FontSize = 18;
+            app.BrowseButton.FontWeight = 'bold';
+            app.BrowseButton.FontAngle = 'italic';
+            app.BrowseButton.FontColor = [1 1 1];
+            app.BrowseButton.Position = [28 436 262 48];
+            app.BrowseButton.Text = 'Browse';
+
+            % Create GrayscaleButton
+            app.GrayscaleButton = uibutton(app.Panel_2, 'push');
+            app.GrayscaleButton.ButtonPushedFcn = createCallbackFcn(app, @GrayscaleButtonPushed, true);
+            app.GrayscaleButton.BackgroundColor = [0 0 1];
+            app.GrayscaleButton.FontSize = 18;
+            app.GrayscaleButton.FontWeight = 'bold';
+            app.GrayscaleButton.FontColor = [1 1 1];
+            app.GrayscaleButton.Position = [29 324 257 46];
+            app.GrayscaleButton.Text = 'Grayscale';
+
+            % Create OperationsLabel
+            app.OperationsLabel = uilabel(app.Panel_2);
+            app.OperationsLabel.BackgroundColor = [1 1 0];
+            app.OperationsLabel.HorizontalAlignment = 'center';
+            app.OperationsLabel.FontSize = 36;
+            app.OperationsLabel.FontWeight = 'bold';
+            app.OperationsLabel.FontAngle = 'italic';
+            app.OperationsLabel.Position = [7 515 303 47];
+            app.OperationsLabel.Text = 'Operations';
+
+            % Create MirrorImageButton
+            app.MirrorImageButton = uibutton(app.Panel_2, 'push');
+            app.MirrorImageButton.ButtonPushedFcn = createCallbackFcn(app, @MirrorImageButtonPushed, true);
+            app.MirrorImageButton.BackgroundColor = [0 0 1];
+            app.MirrorImageButton.FontSize = 18;
+            app.MirrorImageButton.FontWeight = 'bold';
+            app.MirrorImageButton.FontColor = [1 1 1];
+            app.MirrorImageButton.Position = [29 204 252 48];
+            app.MirrorImageButton.Text = 'Mirror Image';
+
+            % Create ColorInversionButton
+            app.ColorInversionButton = uibutton(app.Panel_2, 'push');
+            app.ColorInversionButton.ButtonPushedFcn = createCallbackFcn(app, @ColorInversionButtonPushed, true);
+            app.ColorInversionButton.BackgroundColor = [0 0 1];
+            app.ColorInversionButton.FontSize = 18;
+            app.ColorInversionButton.FontWeight = 'bold';
+            app.ColorInversionButton.FontColor = [1 1 1];
+            app.ColorInversionButton.Position = [29 94 256 48];
+            app.ColorInversionButton.Text = 'Color Inversion';
+
+            % Create Panel_4
+            app.Panel_4 = uipanel(app.UIFigure);
+            app.Panel_4.BackgroundColor = [0 0.949 0.6];
+            app.Panel_4.Position = [516 84 946 221];
+
+            % Create Switch
+            app.Switch = uiswitch(app.Panel_4, 'toggle');
+            app.Switch.Items = {'', 'Exit'};
+            app.Switch.Orientation = 'horizontal';
+            app.Switch.ValueChangedFcn = createCallbackFcn(app, @SwitchValueChanged3, true);
+            app.Switch.FontSize = 16;
+            app.Switch.Position = [820 20 75 33];
+            app.Switch.Value = '';
+
+            % Create CompressionratioSlider
+            app.CompressionratioSlider = uislider(app.Panel_4);
+            app.CompressionratioSlider.Limits = [1 50];
+            app.CompressionratioSlider.MajorTicks = [1 10 20 30 40 50];
+            app.CompressionratioSlider.ValueChangedFcn = createCallbackFcn(app, @CompressionratioSliderValueChanged, true);
+            app.CompressionratioSlider.FontSize = 14;
+            app.CompressionratioSlider.FontWeight = 'bold';
+            app.CompressionratioSlider.FontColor = [0 0.4471 0.7412];
+            app.CompressionratioSlider.Position = [307 191 487 3];
+            app.CompressionratioSlider.Value = 1;
+
+            % Create CompressionSliderLabel
+            app.CompressionSliderLabel = uilabel(app.Panel_4);
+            app.CompressionSliderLabel.BackgroundColor = [0.949 0.4118 0.7098];
+            app.CompressionSliderLabel.HorizontalAlignment = 'center';
+            app.CompressionSliderLabel.FontSize = 18;
+            app.CompressionSliderLabel.FontColor = [0.149 0.149 0.149];
+            app.CompressionSliderLabel.Position = [24 165 257 28];
+            app.CompressionSliderLabel.Text = 'Compression Slider';
+
+            % Create CompressionratioSlider_2
+            app.CompressionratioSlider_2 = uislider(app.Panel_4);
+            app.CompressionratioSlider_2.Limits = [1 50];
+            app.CompressionratioSlider_2.MajorTicks = [1 10 20 30 40 50];
+            app.CompressionratioSlider_2.ValueChangedFcn = createCallbackFcn(app, @CompressionratioSlider_2ValueChanged, true);
+            app.CompressionratioSlider_2.FontSize = 14;
+            app.CompressionratioSlider_2.FontWeight = 'bold';
+            app.CompressionratioSlider_2.FontColor = [0 0.4471 0.7412];
+            app.CompressionratioSlider_2.Position = [307 98 487 3];
+            app.CompressionratioSlider_2.Value = 1;
+
+            % Create ColoredCompressionLabel
+            app.ColoredCompressionLabel = uilabel(app.Panel_4);
+            app.ColoredCompressionLabel.BackgroundColor = [0.949 0.4118 0.7098];
+            app.ColoredCompressionLabel.HorizontalAlignment = 'center';
+            app.ColoredCompressionLabel.FontSize = 18;
+            app.ColoredCompressionLabel.FontColor = [0.149 0.149 0.149];
+            app.ColoredCompressionLabel.Position = [24 76 257 28];
+            app.ColoredCompressionLabel.Text = 'Colored Compression';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = ImageCompression
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
